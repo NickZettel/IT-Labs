@@ -1,7 +1,7 @@
 
 ### Why does Windows Server Core use a command-line interface instead of a GUI?
 
-Windows Server Core uses a command-line interface to reduce resource usage and improve performance, which may be critical on busy servers. Removing these features also improves security by reducing the attack surfaces for malicious actors.
+Windows Server Core uses a command-line interface to reduce resource usage and improve performance, which may be critical on busy servers. Removing these features also improves security by reducing the number of attack surfaces for malicious actors to exploit.
 
 ### How does PowerShell differ from the traditional command prompt (cmd.exe)?
 
