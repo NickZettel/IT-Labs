@@ -1,0 +1,1 @@
+Install the Active Directory Domain Services (AD DS) role on Windows Server Core, promote the server to a domain controller, and perform basic user and group management using PowerShell. This lab introduces Active Directory concepts relevant to network services and authentication.
