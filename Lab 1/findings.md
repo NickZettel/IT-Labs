@@ -1,0 +1,7 @@
+![Alt text](images/Get-ComputerInfo.png)
+![Alt text](images/hostname.png)
+![Alt text](images/Rename-Computer.png)
+![Alt text](images/hostname2.png)
+![Alt text](images/New-NetIPAddress.png)
+![Alt text](images/New-NetIPAddress2.png)
+![Alt text](images/Get-TimeZone.png)
