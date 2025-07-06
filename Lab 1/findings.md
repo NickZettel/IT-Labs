@@ -1,4 +1,4 @@
-### get-computerinfo 
+### Get-ComputerInfo 
 **Remark:** Windows version 2009 but product name Windows Server 2022. 2009 is an internal code name and not an actual product name.
 ![Alt text](images/Get-ComputerInfo.png)
 ### hostname
