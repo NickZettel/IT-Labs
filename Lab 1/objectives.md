@@ -1,0 +1,1 @@
+Get familiar with Windows Server Core by navigating the command-line interface, performing basic system checks, and configuring initial settings using PowerShell.
