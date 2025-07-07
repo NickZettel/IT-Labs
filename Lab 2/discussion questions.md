@@ -1,4 +1,4 @@
-## What is the role of a domain controller in a network, and why is it important for network authentication (Network+ Objective 1.4)?
+## What is the role of a domain controller in a network, and why is it important for network authentication?
 
 The role of a domain controller in a network is to authenticate users and authorize them to access resources. The direct controller holds the Active Directory database, containing accounts, groups, and security policies, and this database is consulted to validate access. Domain controllers often runs a DNS server so clients can connect to the right services. The importance of a DC is that it provides full control over user environments, offers a central login for all users, and enhances security.
 
