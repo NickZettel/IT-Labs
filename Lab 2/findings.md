@@ -1,5 +1,5 @@
 ### Install Active Directory Domain Services Role
-![Alt text](images/1%20Install%20Active%20Directory%20Domain%20Services%20Role.png.png)
+![Alt text](images/1%20Install%20Active%20Directory%20Domain%20Services%20Role.png)
 ### Verify Active Directory Installation
 ![Alt text](images/2%20Verify%20Active%20Directory%20Installation.png)
 ### Verify DNS is operational
