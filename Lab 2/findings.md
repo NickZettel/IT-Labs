@@ -10,3 +10,5 @@
 ![Alt text](images/5%20Create%20a%20Security%20Group%20and%20Add%20the%20User.png)
 ### Client Computer on Domain
 ![Alt text](images/6%20Client%20Computer%20on%20Domain.png) 
+### Test User Login
+![Alt text](images/7%20Test%20User%20Login.png)
