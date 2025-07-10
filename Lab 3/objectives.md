@@ -1,1 +1,1 @@
-Install and configure the Dynamic Host Configuration Protocol (DHCP) server role on Windows Server Core, create a DHCP scope, and test IP address assignment using a second VM. 
+Configure Organizational Units (OUs), set a password policy, and manage file share permissions in Active Directory on Windows Server Core.

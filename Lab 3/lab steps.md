@@ -1,133 +1,118 @@
-
-
 ### Step 1: Log In and Launch PowerShell
 
-1. Start your first VM (the domain controller) and log in as `rakis\Administrator`.
+1. Start your domain controller VM and log in as `rakis\Administrator`.
 2. At the command prompt, type `powershell` and press Enter to switch to PowerShell.
 
-### Step 2: Install the DHCP Server Role
+### Step 2: Create an Organizational Unit (OU)
 
-1. Check available server roles:
-
-   ```
-   Get-WindowsFeature | Where-Object {$_.Name -like "DHCP*"}
-   ```
-   - Look for `DHCP` in the output.
-2. Install the DHCP server role with management tools:
+1. Create a new OU named `SpiceUsers` in the `rakis.local` domain:
 
    ```
-   Install-WindowsFeature -Name DHCP -IncludeManagementTools
+   New-ADOrganizationalUnit -Name "SpiceUsers" -Path "DC=rakis,DC=local" -ProtectedFromAccidentalDeletion $true
    ```
-3. Verify the installation:
+2. Verify the OU was created:
 
    ```
-   Get-WindowsFeature -Name DHCP
-   ```
-   - Ensure `[X]` appears under `Installed`.
-
-### Step 3: Authorize the DHCP Server in Active Directory
-
-1. Authorize the DHCP server in the `rakis.local` domain:
-
-   ```
-   Add-DhcpServerInDC -DnsName $env:COMPUTERNAME.rakis.local -IPAddress 192.168.1.100
-   ```
-   - Replace `192.168.1.100` with your server’s static IP from Lab 1.
-2. Verify authorization:
-
-   ```
-   Get-DhcpServerInDC
-   ```
-   - Confirm your server appears in the list.
-
-### Step 4: Create a DHCP Scope
-
-1. Create a DHCP scope for IP address assignment (e.g., 192.168.1.101–192.168.1.200):
-
-   ```
-   Add-DhcpServerv4Scope -Name "RakisScope" -StartRange 192.168.1.101 -EndRange 192.168.1.200 -SubnetMask 255.255.255.0 -State Active
-   ```
-2. Configure the default gateway (replace `192.168.1.1` if different):
-
-   ```
-   Set-DhcpServerv4OptionValue -ScopeId 192.168.1.0 -Router 192.168.1.1
-   ```
-3. Set DNS server (use your domain controller’s IP, e.g., 192.168.1.100):
-
-   ```
-   Set-DhcpServerv4OptionValue -ScopeId 192.168.1.0 -DnsServer 192.168.1.100 -DnsDomain rakis.local
-   ```
-4. Verify the scope:
-
-   ```
-   Get-DhcpServerv4Scope
+   Get-ADOrganizationalUnit -Filter {Name -eq "SpiceUsers"}
    ```
 
-### Step 5: Configure the Second VM for DHCP
+### Step 3: Move User to the OU
 
-1. Start your second VM and log in as `rakis\letoatre`.
-2. Switch to PowerShell:
-
-   ```
-   powershell
-   ```
-3. Configure the network adapter to obtain an IP address via DHCP:
+1. Move the `letoatre` user to the `SpiceUsers` OU:
 
    ```
-   Set-NetIPInterface -InterfaceAlias "Ethernet" -Dhcp Enabled
+   Get-ADUser -Identity "letoatre" | Move-ADObject -TargetPath "OU=SpiceUsers,DC=rakis,DC=local"
    ```
-   - Replace `Ethernet` with your adapter name (check with `Get-NetAdapter`).
-4. Release and renew the IP address:
+2. Confirm the user’s new location:
 
    ```
-   ipconfig /release
-   ipconfig /renew
+   Get-ADUser -Identity "letoatre" -Properties DistinguishedName
    ```
-5. Verify the assigned IP address:
+   - Look for `OU=SpiceUsers` in the `DistinguishedName`.
+
+### Step 4: Configure a Password Policy
+
+1. Create a new Password Settings Object (PSO) for stricter password requirements:
 
    ```
-   Get-NetIPAddress -InterfaceAlias "Ethernet"
+   New-ADFineGrainedPasswordPolicy -Name "SpiceUsersPSO" -Precedence 10 -MinPasswordLength 12 -MaxPasswordAge "30.00:00:00" -PasswordHistoryCount 5 -ComplexityEnabled $true
    ```
-   - Confirm the IP is within the scope (e.g., 192.168.1.101–192.168.1.200).
-
-### Step 6: Test DHCP Functionality
-
-1. On the second VM, test connectivity to the domain controller:
+2. Apply the PSO to the `SpiceUsers` OU:
 
    ```
-   ping 192.168.1.100
+   Add-ADFineGrainedPasswordPolicySubject -Identity "SpiceUsersPSO" -Subjects (Get-ADUser -SearchBase "OU=SpiceUsers,DC=rakis,DC=local" -Filter *)
    ```
-2. Verify DNS resolution:
+3. Verify the PSO:
 
    ```
-   nslookup rakis.local
+   Get-ADFineGrainedPasswordPolicy -Identity "SpiceUsersPSO"
    ```
-   - Ensure it resolves to 192.168.1.100.
-3. On the first VM (domain controller), check leased IP addresses:
+
+### Step 5: Create a File Share
+
+1. Create a directory for the file share:
 
    ```
-   Get-DhcpServerv4Lease -ScopeId 192.168.1.0
+   New-Item -Path "C:\SpiceData" -ItemType Directory
    ```
-   - Look for the second VM’s assigned IP and MAC address.
-
-### Step 7: Assign DHCP Permissions to GodEmperor Group
-
-1. On the first VM, grant the `GodEmperor` group permissions to manage DHCP:
+2. Create an SMB share named `SpiceShare`:
 
    ```
-   Add-DhcpServerSecurityGroup -ComputerName $env:COMPUTERNAME.rakis.local
-   Add-ADGroupMember -Identity "DhcpAdmins" -Members "GodEmperor"
+   New-SmbShare -Name "SpiceShare" -Path "C:\SpiceData" -FullAccess "rakis\GodEmperor"
    ```
-2. Log in to the second VM as `rakis\letoatre` and test DHCP management:
+3. Verify the share:
 
    ```
-   Get-DhcpServerv4Scope -ComputerName <DC-Name>.rakis.local
+   Get-SmbShare -Name "SpiceShare"
    ```
-   - Replace `<DC-Name>` with your domain controller’s hostname.
 
-### Step 8: Log Off
+### Step 6: Configure NTFS Permissions
 
-1. On both VMs, exit PowerShell:
+1. Set NTFS permissions to allow `GodEmperor` modify access:
+
+   ```
+   $acl = Get-Acl -Path "C:\SpiceData"
+   $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("rakis\GodEmperor", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
+   $acl.SetAccessRule($rule)
+   Set-Acl -Path "C:\SpiceData" -AclObject $acl
+   ```
+2. Verify NTFS permissions:
+
+   ```
+   Get-Acl -Path "C:\SpiceData" | Format-List
+   ```
+
+### Step 7: Test Permissions as Letoatre (Simulation)
+
+1. Since you’re using a single VM, simulate `letoatre`’s access by checking permissions:
+
+   ```
+   Get-SmbShareAccess -Name "SpiceShare"
+   ```
+   - Confirm `GodEmperor` has `Full` access.
+2. Verify the password policy applies to `letoatre`:
+
+   ```
+   Get-ADUser -Identity "letoatre" -Properties * | Select-Object -Property msDS-PSOApplied
+   ```
+   - Look for `SpiceUsersPSO`.
+
+### Step 8: Explore AD PowerShell Commands
+
+1. List all OUs in the domain:
+
+   ```
+   Get-ADOrganizationalUnit -Filter *
+   ```
+2. Explore password policy commands:
+
+   ```
+   Get-Help *PasswordPolicy*
+   ```
+
+### Step 9: Log Off
+
+1. Exit PowerShell:
 
    ```
    exit

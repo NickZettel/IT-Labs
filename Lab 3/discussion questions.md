@@ -1,12 +1,12 @@
-## How does DHCP simplify network management, and why is it critical for network services
+## How do OUs improve user and resource management in Active Directory
 
 
 
 
-## What is the purpose of authorizing a DHCP server in Active Directory?
+## Why are password policies important for network security?
 
 
 
 
-## How did the `GodEmperor` group’s permissions affect DHCP management?
+## What differences exist between SMB share permissions and NTFS permissions?
 
