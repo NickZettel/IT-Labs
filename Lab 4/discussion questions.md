@@ -1,6 +1,6 @@
 
 ## How does DNS support Active Directory and network services?
-Dns resolves names within the network to IP addresses. Resources within a network (like a printer) are usually referenced to with their DNS name. Active Didectory also relies on DNS records to help clients find domain controllers. 
+Dns resolves names within the network to IP addresses. Resources within a network (like a printer) are usually referenced to with their DNS name. Active Directory also relies on DNS records to help clients find domain controllers. 
 
 ## What is the difference between an A record and a CNAME record?
 An A record maps a domain name to an IP address while a CNAME record is an alias that can be used to point to that name.
