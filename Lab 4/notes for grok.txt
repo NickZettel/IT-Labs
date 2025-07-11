@@ -1,0 +1,2 @@
+for step 5, I made the fictional server in a new zone named crawlers so crawlers.spice.rakis.local and I gave it the
+CNAME alias "harvesters".
