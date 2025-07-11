@@ -6,3 +6,6 @@ Install the Active Directory Domain Services (AD DS) role on Windows Server Core
 
 #### Lab 3
 Configure Organizational Units (OUs), set a password policy, and manage file share permissions in Active Directory on Windows Server Core.
+
+#### Lab 4
+Install and configure the DNS server role on Windows Server Core, create a forward lookup zone, add DNS records, and test name resolution.

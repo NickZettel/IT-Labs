@@ -1,116 +1,144 @@
+
 ### Step 1: Log In and Launch PowerShell
 
 1. Start your domain controller VM and log in as `rakis\Administrator`.
 2. At the command prompt, type `powershell` and press Enter to switch to PowerShell.
 
-### Step 2: Create an Organizational Unit (OU)
+### Step 2: Verify Existing DNS Role
 
-1. Create a new OU named `SpiceUsers` in the `rakis.local` domain:
-
-   ```
-   New-ADOrganizationalUnit -Name "SpiceUsers" -Path "DC=rakis,DC=local" -ProtectedFromAccidentalDeletion $true
-   ```
-2. Verify the OU was created:
+1. Since Lab 2 included the `-InstallDns` parameter when promoting the domain controller, check if the DNS server role is already installed:
 
    ```
-   Get-ADOrganizationalUnit -Filter {Name -eq "SpiceUsers"}
+   Get-WindowsFeature -Name DNS
    ```
-
-### Step 3: Move User to the OU
-
-1. Move the `letoatre` user to the `SpiceUsers` OU:
+   - If `[X]` appears under `Installed`, skip to Step 3.
+2. If not installed, install the DNS server role with management tools:
 
    ```
-   Get-ADUser -Identity "letoatre" | Move-ADObject -TargetPath "OU=SpiceUsers,DC=rakis,DC=local"
+   Install-WindowsFeature -Name DNS -IncludeManagementTools
    ```
-2. Confirm the user’s new location:
+3. Verify the DNS service is running:
 
    ```
-   Get-ADUser -Identity "letoatre" -Properties DistinguishedName
+   Get-Service -Name DNS
    ```
-   - Look for `OU=SpiceUsers` in the `DistinguishedName`.
+   - If stopped, start it: `Start-Service -Name DNS`.
 
-### Step 4: Configure a Password Policy
+### Step 3: Verify the Active Directory-Integrated DNS Zone
 
-1. Create a new Password Settings Object (PSO) for stricter password requirements:
-
-   ```
-   New-ADFineGrainedPasswordPolicy -Name "SpiceUsersPSO" -Precedence 10 -MinPasswordLength 12 -MaxPasswordAge "30.00:00:00" -PasswordHistoryCount 5 -ComplexityEnabled $true
-   ```
-2. Apply the PSO to the `SpiceUsers` OU:
+1. Check for the existing `rakis.local` DNS zone (created automatically during AD DS promotion):
 
    ```
-   Add-ADFineGrainedPasswordPolicySubject -Identity "SpiceUsersPSO" -Subjects (Get-ADUser -SearchBase "OU=SpiceUsers,DC=rakis,DC=local" -Filter *)
+   Get-DnsServerZone -Name "rakis.local"
    ```
-3. Verify the PSO:
+   - Confirm it exists and is `AD-Integrated`.
+2. List DNS records in the zone:
 
    ```
-   Get-ADFineGrainedPasswordPolicy -Identity "SpiceUsersPSO"
+   Get-DnsServerResourceRecord -ZoneName "rakis.local"
    ```
+   - Note the default A, NS, and SOA records.
 
-### Step 5: Create a File Share
+### Step 4: Create a New Forward Lookup Zone
 
-1. Create a directory for the file share:
-
-   ```
-   New-Item -Path "C:\SpiceData" -ItemType Directory
-   ```
-2. Create an SMB share named `SpiceShare`:
+1. Create a new forward lookup zone for a subdomain (e.g., `spice.rakis.local`):
 
    ```
-   New-SmbShare -Name "SpiceShare" -Path "C:\SpiceData" -FullAccess "rakis\GodEmperor"
+   Add-DnsServerPrimaryZone -Name "spice.rakis.local" -ZoneFile "spice.rakis.local.dns"
    ```
-3. Verify the share:
+2. Verify the zone:
 
    ```
-   Get-SmbShare -Name "SpiceShare"
+   Get-DnsServerZone -Name "spice.rakis.local"
    ```
 
-### Step 6: Configure NTFS Permissions
+### Step 5: Add DNS Records
 
-1. Set NTFS permissions to allow `GodEmperor` modify access:
+1. Add an A record for a fictional server in the new zone (e.g., `arrakis.spice.rakis.local`):
 
    ```
-   $acl = Get-Acl -Path "C:\SpiceData"
+   Add-DnsServerResourceRecordA -ZoneName "spice.rakis.local" -Name "arrakis" -IPv4Address "192.168.1.101"
+   ```
+2. Add a CNAME record aliasing `dune` to `arrakis.spice.rakis.local`:
+
+   ```
+   Add-DnsServerResourceRecordCName -ZoneName "spice.rakis.local" -Name "dune" -HostNameAlias "arrakis.spice.rakis.local"
+   ```
+3. Verify the records:
+
+   ```
+   Get-DnsServerResourceRecord -ZoneName "spice.rakis.local"
+   ```
+
+### Step 6: Test DNS Resolution as Administrator
+
+1. Test name resolution for the new records:
+
+   ```
+   Resolve-DnsName -Name "arrakis.spice.rakis.local"
+   Resolve-DnsName -Name "dune.spice.rakis.local"
+   ```
+   - Confirm both resolve to `192.168.1.101`.
+
+### Step 7: Test DNS Resolution as Letoatre
+
+1. Log off the server:
+
+   ```
+   logoff
+   ```
+2. Log in as `rakis\letoatre` (using the password set in Lab 2, e.g., `P@ssw0rd456`).
+3. Launch PowerShell:
+
+   ```
+   powershell
+   ```
+4. Test DNS resolution:
+
+   ```
+   nslookup arrakis.spice.rakis.local
+   nslookup dune.spice.rakis.local
+   ```
+   - Verify both resolve to `192.168.1.101`.
+5. Log off and log back in as `rakis\Administrator`.
+
+### Step 8: Assign DNS Permissions to GodEmperor Group
+
+1. Grant the `GodEmperor` group permissions to manage DNS:
+
+   ```
+   Add-DnsServerResourceRecord -ZoneName "rakis.local" -A -Name "test" -IPv4Address "192.168.1.102" -AllowUpdateAny
+   $acl = Get-DnsServerZone -Name "rakis.local" | Get-Acl
    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("rakis\GodEmperor", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
-   $acl.SetAccessRule($rule)
-   Set-Acl -Path "C:\SpiceData" -AclObject $acl
+   $acl.AddAccessRule($rule)
+   Set-Acl -Path "AD:DC=rakis.local,CN=MicrosoftDNS,DC=DomainDnsZones,DC=rakis,DC=local" -AclObject $acl
    ```
-2. Verify NTFS permissions:
+2. Log off, log back in as `rakis\letoatre`, and test adding a DNS record:
 
    ```
-   Get-Acl -Path "C:\SpiceData" | Format-List
+   powershell
+   Add-DnsServerResourceRecordA -ZoneName "rakis.local" -Name "fremen" -IPv4Address "192.168.1.103"
    ```
-
-### Step 7: Test Permissions as Letoatre (Simulation)
-
-1. Since you’re using a single VM, simulate `letoatre`’s access by checking permissions:
+3. Log off and log back in as `rakis\Administrator`, then verify:
 
    ```
-   Get-SmbShareAccess -Name "SpiceShare"
-   ```
-   - Confirm `GodEmperor` has `Full` access.
-2. Verify the password policy applies to `letoatre`:
-
-   ```
-   Get-ADUser -Identity "letoatre" -Properties * | Select-Object -Property msDS-PSOApplied
-   ```
-   - Look for `SpiceUsersPSO`.
-
-### Step 8: Explore AD PowerShell Commands
-
-1. List all OUs in the domain:
-
-   ```
-   Get-ADOrganizationalUnit -Filter *
-   ```
-2. Explore password policy commands:
-
-   ```
-   Get-Help *PasswordPolicy*
+   Get-DnsServerResourceRecord -ZoneName "rakis.local" -Name "fremen"
    ```
 
-### Step 9: Log Off
+### Step 9: Explore DNS PowerShell Commands
+
+1. List all DNS zones:
+
+   ```
+   Get-DnsServerZone
+   ```
+2. Explore DNS cmdlets:
+
+   ```
+   Get-Help *DnsServer*
+   ```
+
+### Step 10: Log Off
 
 1. Exit PowerShell:
 

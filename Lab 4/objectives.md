@@ -1,1 +1,1 @@
-Configure Organizational Units (OUs), set a password policy, and manage file share permissions in Active Directory on Windows Server Core.
+Install and configure the DNS server role on Windows Server Core, create a forward lookup zone, add DNS records, and test name resolution.
