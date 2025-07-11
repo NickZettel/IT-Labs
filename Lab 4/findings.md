@@ -19,5 +19,5 @@
 ###7 Explicit DNS query
 ![Alt text](images/7%20Explicit%20DNS%20query.png)
 
-###8 Failing Assigning DNS Permissions to Group
+###8 Assigning DNS Permissions to Group - Failed
 ![Alt text](images/8%20Failing%20Assigning%20DNS%20Permissions%20to%20Group.png)
