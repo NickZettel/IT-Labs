@@ -9,3 +9,6 @@ Configure Organizational Units (OUs), set a password policy, and manage file sha
 
 #### Lab 4
 Install and configure the DNS server role on Windows Server Core, create a forward lookup zone, add DNS records, and test name resolution.
+
+#### Lab 5
+Complete DNS permissions configuration for a group, troubleshoot DNS resolution issues, and create a Group Policy Object (GPO) to enforce user settings.
