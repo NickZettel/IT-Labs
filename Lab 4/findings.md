@@ -29,6 +29,7 @@
 ###8 Assigning DNS Permissions to Group - Failed
 
 ![Alt text](images/8%20Failing%20Assigning%20DNS%20Permissions%20to%20Group.png)
+
 Remark: The correct approach involved accessing the AD object for the DNS zone. Revisited in Lab 5. Preview:
 
 ![Alt text](images/1%20Fix%20and%20Complete%20DNS%20Permissions.png)
