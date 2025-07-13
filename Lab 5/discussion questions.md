@@ -7,3 +7,4 @@
 
 ## How does delegating DNS permissions to `GodEmperor` improve administrative efficiency?
 
+ 
