@@ -102,7 +102,7 @@
    ```
    logoff
    ```
-3. Test access to shares:
+3. Test access to shares:exit
 
    ```
    powershell
@@ -122,58 +122,4 @@
    New-Item -Path "\\localhost\SpiceShare\Restricted\paul.txt" -ItemType File
    ```
    - Should fail due to permissions.
-6. Log off and log back in as `rakis\Administrator`.
-
-### Step 7: Optional – Test Share Access from Client VM
-
-1. Start the client VM and log in as `rakis\letoatre`.
-2. Verify the client’s DHCP-assigned IP:
-
-   ```
-   Get-NetIPAddress -InterfaceAlias "Ethernet"
-   ```
-   - Should be in `192.168.1.101–192.168.1.200`.
-3. Test share access:
-
-   ```
-   Test-Path "\\192.168.1.100\SpiceShare\Public"
-   Test-Path "\\192.168.1.100\SpiceShare\Restricted"
-   New-Item -Path "\\192.168.1.100\SpiceShare\Public\client.txt" -ItemType File
-   New-Item -Path "\\192.168.1.100\SpiceShare\Restricted\client.txt" -ItemType File
-   ```
-   - Both should succeed for `letoatre`.
-4. Log off and log in as `rakis\paulatre` on the client VM, then repeat the tests:
-
-   ```
-   Test-Path "\\192.168.1.100\SpiceShare\Public"
-   Test-Path "\\192.168.1.100\SpiceShare\Restricted"
-   New-Item -Path "\\192.168.1.100\SpiceShare\Public\paulclient.txt" -ItemType File
-   New-Item -Path "\\192.168.1.100\SpiceShare\Restricted\paulclient.txt" -ItemType File
-   ```
-   - `Public` should succeed, `Restricted` should fail.
-
-### Step 8: Explore File Server Commands
-
-1. List all SMB shares:
-
-   ```
-   Get-SmbShare
-   ```
-2. Explore SMB cmdlets:
-
-   ```
-   Get-Help *Smb*
-   ```
-
-### Step 9: Log Off
-
-1. Exit PowerShell:
-
-   ```
-   exit
-   ```
-2. Log off:
-
-   ```
-   logoff
-   ```
+6. Log off 
