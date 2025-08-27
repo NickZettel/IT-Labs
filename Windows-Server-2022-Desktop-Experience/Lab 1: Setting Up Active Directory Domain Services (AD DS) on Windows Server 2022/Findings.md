@@ -13,7 +13,7 @@ Why it matters: Promoting to DC establishes the forest root, which is the founda
 
 ### 5. Powershell Script For AD DS Deployment
 ![Alt text](images/5. Powershell Script For AD DS Deployment.png)
-This is how the same steps can be performed is a PowerShell command instead of the gui.
+This is how the same steps can be performed is a PowerShell command instead of the GUI.
 
 ### 6. Active Directory Users and Computers
 ![Alt text](images/6. Active Directory Users and Computers.png)
